@@ -1,4 +1,4 @@
-# Becattini et al CHM
+# Becattini et al. 'Rapid transcriptional and metabolic adaptation of intestinal microbes to host immune activation'
 # Codes used to obtain Figures 1d, 2b and 4a = 16s rRNA gene analysis
 # Use the 'DADA2_SB093_SB172_table.txt' obtained through DADA2 analyses of the sequencing data
 
