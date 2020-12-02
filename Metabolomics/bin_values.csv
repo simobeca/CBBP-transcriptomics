@@ -1,0 +1,20 @@
+bin_value,color
+0-0.25,#3182BD
+.25-.75,#9ECAE1
+.75-1.25,#F7F7F7
+1.25-2.5,#FEE0D2
+2.5-5.0,#FCBBA1
+5.0-7.5,#FC9272
+7.5-25,#FB6A4A
+25-50,#EF3B2C
+50-500,#CB181D
+>500,#99000D
+deplete >5x,#2171B5
+deplete 2-5x,#6BAED6
+deplete 1.3-2x,#BDD7E7
+1.3x deplete-1.3x increase,#F7F7F7
+increase 1.3-2x,#FCBBA1
+increase 2-5x,#FC9272
+increase 5-10x,#FB6A4A
+increase 10-30x,#DE2D26
+>30X increase,#A50F15

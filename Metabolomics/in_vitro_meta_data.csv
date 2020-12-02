@@ -1,0 +1,37 @@
+,experiment,tube_label,class,msk_id,time
+1,TE9_co,36,Media,Media,
+2,TE9_co,37,Media,Media,
+3,TE9_co,38,Media,Media,
+4,TE9_co,39,Media,Media,
+5,TE9_co,40,Isolate,Blautia producta,48.2
+6,TE9_co,41,Isolate,[Clostridium] bolteae,48.2
+7,TE9_co,42,Isolate,Bacteroides sartorii,48.2
+8,TE9_co,43,Isolate,Parabacteroides distasonis,48.2
+,TE37,1,Media,Media,
+,TE37,2,Media,Media,
+,TE37,3,Isolate,Blautia producta,3
+,TE37,4,Isolate,[Clostridium] bolteae,3
+,TE37,5,Isolate,Blautia producta,6
+,TE37,6,Isolate,[Clostridium] bolteae,6
+,TE37,7,Isolate,Blautia producta,9
+,TE37,8,Isolate,[Clostridium] bolteae,9
+,TE37,9,Isolate,Blautia producta,12
+,TE37,10,Isolate,[Clostridium] bolteae,12
+,TE37,11,Isolate,Blautia producta,24
+,TE37,12,Isolate,[Clostridium] bolteae,24
+,TE37,13,Isolate,Blautia producta,48.1
+,TE37,14,Isolate,[Clostridium] bolteae,48.1
+,TE37,15,Media,Media,
+,TE37,16,Media,Media,
+,TE37,17,Isolate,Bacteroides sartorii,3
+,TE37,18,Isolate,Parabacteroides distasonis,3
+,TE37,19,Isolate,Bacteroides sartorii,6
+,TE37,20,Isolate,Parabacteroides distasonis,6
+,TE37,21,Isolate,Bacteroides sartorii,9
+,TE37,22,Isolate,Parabacteroides distasonis,9
+,TE37,23,Isolate,Bacteroides sartorii,12
+,TE37,24,Isolate,Parabacteroides distasonis,12
+,TE37,25,Isolate,Bacteroides sartorii,24
+,TE37,26,Isolate,Parabacteroides distasonis,24
+,TE37,27,Isolate,Bacteroides sartorii,48.1
+,TE37,28,Isolate,Parabacteroides distasonis,48.1
