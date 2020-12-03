@@ -1,32 +1,19 @@
 library(RColorBrewer)
-library(DESeq2)
 library(plyr)
-library(pheatmap)
-library(Rsubread)
-library(clusterProfiler)
 library(stringr)
 library(ggplot2)
 library(grDevices)
-library(genefilter)
-library(xlsx)
 library(tidyr)
-library(openxlsx)
-library(githubinstall)
 library(yingtools2)
-library(phyloseq)
 library(reshape2)
 library(ggrepel)
 library(gplots)
 library(gtools)
-library(gsubfn)
-library(VennDiagram)
-library(grid)
 library(dplyr)
 
-setwd("/MyFolder/")
 
 # read in the Operon list obtained through Rockhopper
-operons_RH <- read.delim2('/MyFolder/operons_RH_full.txt') %>% 
+operons_RH <- read.delim2('operons_RH_full.txt') %>% 
   select(-Start, -Stop, -Strand) %>%
   mutate(Operon_composition = case_when(
     !is.na(Operon_composition) ~ Operon_composition,
@@ -44,31 +31,12 @@ operon_id <- operons_RH %>%
 
 operons_RH <- left_join(operons_RH, operon_id, by = c('Organism', "Operon_composition"))
 
-# read in results df from SaCD3-treated mice in B093 and SB172 (SPF and GF, respectively)
-SB093_BP <- read.table("SB093_BP_aCD36h_vs_0h.txt") %>% mutate(experiment="EXP_1") %>% mutate(Organism="BP") %>% mutate (Gene_number = gsub('ID=fig\\|33035.10.', '', Gene))
-SB172_BP <- read.table("SB172_BP_4mix_6h_DEG_allsamples.txt") %>% mutate(experiment="EXP_2") %>% mutate(Organism="BP") %>% mutate(Gene_Name = Gene_name) %>% select(-Gene_name) %>% mutate(Gene = gsub(";Name=.*", "", Gene))
-SB093_BS <- read.table("SB093_BS_aCD36h_vs_0h.txt") %>% mutate(experiment="EXP_1") %>% mutate(Organism="BS") %>% mutate (Gene_number = gsub('ID=fig\\|671267.8.', '', Gene))
-SB172_BS <- read.table("SB172_BS_4mix_6h_DEG_allsamples.txt") %>% mutate(experiment="EXP_2") %>% mutate(Organism="BS") %>% mutate(Gene_Name = Gene_name) %>% select(-Gene_name) %>% mutate(Gene = gsub(";Name=.*", "", Gene)) %>% mutate (Gene_number = gsub('ID=fig\\|671267.8.', '', Gene))
-SB093_CB <- read.table("SB093_CB_aCD36h_vs_0h.txt") %>% mutate(experiment="EXP_1") %>% mutate(Organism="CB") %>% mutate (Gene_number = gsub('ID=fig\\|208479.6.', '', Gene)) 
-SB172_CB <- read.table("SB172_CB_4mix_6h_DEG_allsamples.txt") %>% mutate(experiment="EXP_2") %>% mutate(Organism="CB") %>% mutate(Gene_Name = Gene_name) %>% select(-Gene_name) %>% mutate(Gene = gsub(";Name=.*", "", Gene)) %>% mutate (Gene_number = gsub('ID=fig\\|208479.6.', '', Gene)) 
-SB093_PD <- read.table("SB093_PD_aCD36h_vs_0h.txt") %>% mutate(experiment="EXP_1") %>% mutate(Organism="PD") %>% mutate (Gene_number = gsub('ID=fig\\|823.92.', '', Gene))
-SB172_PD <- read.table("SB172_PD_4mix_6h_DEG_allsamples.txt") %>% mutate(experiment="EXP_2") %>% mutate(Organism="PD") %>% mutate(Gene_Name = Gene_name) %>% select(-Gene_name) %>% mutate(Gene = gsub(";Name=.*", "", Gene)) %>% mutate (Gene_number = gsub('ID=fig\\|823.92.', '', Gene))
+# read in results df from aCD3-treated mice in SB093 and SB172 (SPF and GF, respectively). Here provided as a table 'all_data
+# select genes significant in both experiments 
+# retain only those with abs(log2FC)>1 and concordant sign
 
-# generate cumulative df
-  alldata <- bind_rows(SB093_BP, SB172_BP, SB093_BS, SB172_BS, SB093_CB, SB172_CB, SB093_PD, SB172_PD) %>%
- # dplyr::mutate(Gene_name = gsub("(.*);Name=", "", Gene)) %>% mutate(Gene_name = gsub("(\\(E.*)", "", Gene_name))# %>%
- # mutate(Gene = gsub("(.*);Name=", "", Gene))
- # mutate (Gene_number = gsub('ID=fig|208479.6.', '', Gene_Name) %>%
-  mutate(Gene_Name = ifelse(grepl("hypothetical protein|Hypothetical protein", Gene_Name), 'hypothetical protein', Gene_Name)) %>%
-  mutate(Gene_Name = ifelse(grepl("hypothetical protein", Gene_Name), paste0(Gene_Name, " ", Gene_number), Gene_Name)) %>%
-  mutate(Gene_Name = gsub('%2C', ',' , Gene_Name)) %>% 
-  mutate(Gene = gsub('ID=', '', Gene)) %>%
+alldata <- read.delim2('all_data.txt') %>%
   left_join(operons_RH, by=c('Organism','Gene')) %>%
-  mutate(pvalue = coalesce(pvalue, 1)) #replaceing NAs in pvalue column with arbitary '1' to avoid problems downstream
-  
-  # select genes significant in both experiments 
-  # retain only those with abs(log2FC)>1 and concordant sign
-alldata <-   alldata %>% 
   dplyr::group_by(Gene,Organism) %>%
   dplyr::filter(sum(padj<0.1)==2) %>% 
   dplyr::filter((sum(log2FoldChange>1) ==2)|(sum(log2FoldChange<(-1)) ==2)) %>% 
@@ -108,7 +76,7 @@ alldata2 <- alldata2 %>%
   dplyr::arrange(max.mean,operon2,mean.log2foldchange) 
 
 # plot
-pdf("SB093_SB172_RHoperons_FDR0.1.pdf", height=130, width=27)
+pdf("Supplementary_Figure_5.pdf", height=130, width=27)
 ggplot(alldata2) +
   geom_col(aes(x=Gene2,y=mean.log2foldchange, fill=color_gg)) +
   scale_fill_manual(values=c(red='firebrick2', black='gray60')) +
