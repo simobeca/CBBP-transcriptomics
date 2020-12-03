@@ -3,7 +3,6 @@
 # Use the 'DADA2_SB093_SB172_table.txt' obtained through DADA2 analyses of the sequencing data
 
 library(RColorBrewer)
-library(plyr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
@@ -12,7 +11,7 @@ library(grid)
 library(gridExtra)
 library(stringr)
 
-
+setwd('/Users/becattis/Desktop/CHM revision/Scripts to be uploaded/CBBP-transcriptomics/16s/')
 
 df <- read.delim('DADA2_SB093_SB172_table.txt')
 
@@ -195,5 +194,109 @@ Figure_4a <- SB172 %>%
 Figure_4a
 
 
+########### RATIO RNA/DNA
 
-save.image('16s_for_transcriptome.RData')
+### read numbers were extracted for each bacterium from FeatureCounts as explained in the main script (SB093)
+### each corresponding df was build as indicated below for BP, then the 4 dfs were attached to make an All_reads file, here provided as a .txt for convenience
+
+#BP_reads <- data.frame('Reads' = colSums(BP_FtCounts$stat[,-c(1,2)])) %>%
+#  rownames_to_column(var='Sample') %>%
+#  mutate(Organism = 'BP')
+
+All_reads <- read.delim2('All_reads.txt', dec='.')
+
+All_reads_pct <- All_reads %>% 
+  dplyr::group_by(Sample) %>%
+  dplyr::mutate(pct_reads=Reads/sum(Reads)) %>%
+  dplyr::ungroup() %>%
+  dplyr::rename(sample=Sample) %>%
+  dplyr::mutate(sample=paste0('m',sample, sep=''))
+
+
+SB093_flag_pct <- SB093_flag %>%
+  dplyr::filter(!Species=='Other') %>%
+  dplyr::group_by(sample) %>%
+  dplyr::mutate(pctseqs=pctseqs/sum(pctseqs)) %>%
+  dplyr::ungroup()
+
+SB093_aCD3_pct <- SB093_aCD3 %>%
+  dplyr::filter(!Species=='Other') %>%
+  dplyr::group_by(sample) %>%
+  dplyr::mutate(pctseqs=pctseqs/sum(pctseqs)) %>%
+  dplyr::ungroup()
+
+SB093_16s_all_pct <- bind_rows(SB093_flag_pct, SB093_aCD3_pct) %>%
+  dplyr::distinct() %>% # remove 0h which is now there twice
+  dplyr::mutate(Species = case_when(
+    Species == 'Bacteroides sartorii' ~ 'BS',
+    Species == 'Parabacteroides distasonis' ~ 'PD',
+    Species == 'Clostridium bolteae' ~ 'CB',
+    Species == 'Blautia producta' ~ 'BP'
+  )) %>%
+  dplyr::rename(Organism=Species)
+
+### according to PATRIC, PD and BS have 7 copies of 16s, BP and CB have 5, 
+### take those into account by dividing BS and PD times 7 and BP CB times 5
+### then sum/normalize again
+SB093_16s_all_pct_norm <- SB093_16s_all_pct %>% 
+  dplyr:: mutate(pctseqs = case_when(
+    Organism == 'BS' ~ pctseqs/7,
+    Organism == 'PD' ~ pctseqs/7,
+    Organism == 'CB'  ~ pctseqs/5,
+    Organism == 'BP' ~ pctseqs/5)) %>%
+  dplyr::group_by(sample) %>%
+  dplyr::mutate(pctseqs=pctseqs/sum(pctseqs)) %>%
+  dplyr::ungroup()
+
+SB093_ratio_rna_dna <- SB093_16s_all_pct_norm %>% 
+  dplyr::left_join(All_reads_pct, by=c('sample', 'Organism')) %>%
+  dplyr::mutate(RNA_DNA_ratio =pct_reads/pctseqs )
+
+
+Supplementary_Figure_1D <- SB093_ratio_rna_dna %>%
+  dplyr::mutate(Time_point = str_extract(pattern='0h|6h|24h', sample)) %>%
+  dplyr::filter(grepl('0h|flag', sample)) %>%
+  ggplot(aes(fill=factor(Organism), 
+             y=RNA_DNA_ratio, 
+             x=factor(Time_point, levels=c('0h', '6h', '24h'))))  + 
+  geom_point(shape=21, color='black', size=4) +
+  theme_bw(base_size = 16) + 
+  scale_fill_manual(values=c(
+    'BS'='palegreen4', 
+    'BP'='pink',
+    'CB'='firebrick2',
+    'PD'='seashell3'))  +
+  theme(strip.background = element_blank(),
+        aspect.ratio = 0.75) +
+  labs(fill='Species',
+       x ='Sample',
+       title = 'SB093 RNA flag reads') +
+  facet_wrap(~factor(Organism, levels=c('CB', 'BP', 'BS', 'PD')), ncol=1 , scales = "fixed", strip.position = 'right') +
+  expand_limits(y=0)
+
+
+Supplementary_Figure_2E <- SB093_ratio_rna_dna %>%
+  dplyr::mutate(Time_point = str_extract(pattern='0h|6h|24h', sample)) %>%
+  dplyr::filter(grepl('0h|aCD3', sample)) %>%
+  ggplot(aes(fill=factor(Organism), 
+             y=RNA_DNA_ratio, 
+             x=factor(Time_point, levels=c('0h', '6h', '24h'))))  + 
+  geom_point(shape=21, color='black', size=4) +
+  theme_bw(base_size = 16) + 
+  scale_fill_manual(values=c(
+    'BS'='palegreen4', 
+    'BP'='pink',
+    'CB'='firebrick2',
+    'PD'='seashell3'))  +
+  theme(strip.background = element_blank(),
+        aspect.ratio = 0.7) +
+  labs(fill='Species',
+       x ='Sample',
+       title = 'SB093 RNA aCD3 reads') +
+  facet_wrap(~factor(Organism, levels=c('CB', 'BP', 'BS', 'PD')), ncol=1 , scales = "fixed", strip.position = 'right') +
+  expand_limits(y=0)
+
+
+
+
+
