@@ -33,7 +33,6 @@ library(cluster)
 library(cowplot)
 library(ggpubr)
 
-setwd("/MyFolder/")
 
 df <- read.delim('4mix_top100_Matrix.txt')
 
