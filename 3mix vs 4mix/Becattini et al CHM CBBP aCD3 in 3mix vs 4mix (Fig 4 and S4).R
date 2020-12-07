@@ -233,7 +233,23 @@ Figure_4C_PD <- autoplot(prcomp(t_PD_norm_counts_LRT[-rev(seq_len(ncol(t_PD_norm
              alpha = 0.1, geom = "polygon")
 
 
+###### CATALASES ####
 
+Figure_4D <- BP_alldata %>% bind_rows(CB_alldata) %>% bind_rows(PD_alldata) %>%
+  filter(Comparison %in% c('3mix_6h', '4mix_6h')) %>%
+  filter(grepl(pattern='Catalase|catalase', Gene)) %>%
+  group_by(Gene) %>%
+  filter(sum(padj<0.05)>=1) %>%
+  ggplot(aes(x=log2FoldChange, y=-log10(padj), group = 'Gene')) +
+  geom_line(size=1/3, color='grey50') + 
+  geom_hline(yintercept = -log10(0.05), linetype = 'dotted', col = 'red') +
+  geom_point(aes(color=Comparison), size=3) +
+  scale_color_manual(values = c( "black", "palegreen4")) +
+  theme_bw(base_size = 14) +
+  theme(strip.background = element_blank(), 
+        aspect.ratio = 1) +
+  facet_wrap(.~Gene, nrow=1) 
+  
 
 #### Heatmaps Supplementary Figure 4 ####
 my_colour = list(
