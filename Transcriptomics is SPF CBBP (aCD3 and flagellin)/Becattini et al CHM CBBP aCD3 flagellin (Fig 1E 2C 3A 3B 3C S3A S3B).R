@@ -32,9 +32,7 @@ library(ggsci)
 library(dplyr)
 library(DESeq2)
 
-setwd('/Users/becattis/Desktop/CHM revision/Scripts to be uploaded/CBBP-transcriptomics/Transcriptomics is SPF CBBP (aCD3 and flagellin)/')
-#save.image('CBBP_main.RData')
-load('CBBP_main.RData')
+
 ### to run this need .gff files in working directory, 
 ### as well as a 'SAM_BAM_ALIGNMENTS' folder that contains all bowtie2 alignments files (.bam) obtained with the enclosed bash script
 ### the first step (FeatureCounts) can be avoided by directly reading in the relative df, here provided as .txt tables
@@ -96,7 +94,7 @@ BP_countData <-  as.matrix(select(BP_Counts, BP_m1_0h, BP_m2_0h, BP_m3_0h, BP_m4
 ## run Deseq excluding low count entries
 BP_dds <- DESeqDataSetFromMatrix(countData=BP_countData, colData=BP_colData, design= ~ BP_condition)
 BP_dds <- BP_dds[rowSums(counts(BP_dds)) > 10, ]
-BP_dds <- DESeq(BP_dds, fitType = 'parametric')
+BP_dds <- DESeq(BP_dds, betaPrior = TRUE, fitType = 'parametric')
 
 BP_table_counts_normalized <- counts(BP_dds, normalized=TRUE)
 
@@ -109,7 +107,7 @@ BS_countData <-  as.matrix(select(BS_Counts, BS_m1_0h, BS_m2_0h, BS_m3_0h, BS_m4
 ## run Deseq excluding low count entries
 BS_dds <- DESeqDataSetFromMatrix(countData=BS_countData, colData=BS_colData, design= ~ BS_condition)
 BS_dds <- BS_dds[rowSums(counts(BS_dds)) > 10, ]
-BS_dds <- DESeq(BS_dds, fitType = 'parametric')
+BS_dds <- DESeq(BS_dds, betaPrior = TRUE, fitType = 'parametric')
 
 BS_table_counts_normalized <- counts(BS_dds, normalized=TRUE)
 
@@ -121,7 +119,7 @@ CB_countData <-  as.matrix(select(CB_Counts, CB_m1_0h, CB_m2_0h, CB_m3_0h, CB_m4
 ## run Deseq excluding low count entries
 CB_dds <- DESeqDataSetFromMatrix(countData=CB_countData, colData=CB_colData, design= ~ CB_condition)
 CB_dds <- CB_dds[rowSums(counts(CB_dds)) > 10, ]
-CB_dds <- DESeq(CB_dds, fitType = 'parametric')
+CB_dds <- DESeq(CB_dds, betaPrior = TRUE, fitType = 'parametric')
 
 CB_table_counts_normalized <- counts(CB_dds, normalized=TRUE)
 
@@ -134,7 +132,7 @@ PD_countData <-  as.matrix(select(PD_Counts, PD_m1_0h, PD_m2_0h, PD_m3_0h, PD_m4
 ## run Deseq excluding low count entries
 PD_dds <- DESeqDataSetFromMatrix(countData=PD_countData, colData=PD_colData, design= ~ PD_condition)
 PD_dds <- PD_dds[rowSums(counts(PD_dds)) > 10, ]
-PD_dds <- DESeq(PD_dds, fitType = 'parametric')
+PD_dds <- DESeq(PD_dds, betaPrior = TRUE, fitType = 'parametric')
 
 PD_table_counts_normalized <- counts(PD_dds, normalized=TRUE)
 
@@ -667,49 +665,15 @@ all_6h <-  all %>%
          strip.text.y = element_blank(),
          strip.text.x = element_blank(),
          aspect.ratio = 1) 
- 
- 
- 
-##### housekeeping genes selection for qPCR ####
- 
- SB093_BP_HK_genes <- BP_norm_counts %>% mutate(variance=rowVars(BP_norm_counts)) %>% 
-   mutate(meancounts=rowMeans(BP_norm_counts)) %>%
-   rownames_to_column('Gene') %>% 
-   filter(variance < quantile(variance, .02)) %>%# & meancounts > quantile(meancounts, .50)) %>%
-   select(Gene, meancounts, variance) %>%
-   mutate(Exp='SB093') %>% mutate(Organism='BP') %>% arrange(variance) 
- 
- SB093_BS_HK_genes <- BS_norm_counts %>% mutate(variance=rowVars(BS_norm_counts)) %>% 
-   mutate(meancounts=rowMeans(BS_norm_counts)) %>%
-   rownames_to_column('Gene') %>% 
-   filter(variance < quantile(variance, .02)) %>%# & meancounts > quantile(meancounts, .50)) %>%
-   select(Gene, meancounts, variance) %>%
-   mutate(Exp='SB093') %>% mutate(Organism='BS') %>% arrange(variance) 
- 
- SB093_CB_HK_genes <- CB_norm_counts %>% mutate(variance=rowVars(CB_norm_counts)) %>% 
-   mutate(meancounts=rowMeans(CB_norm_counts)) %>%
-   rownames_to_column('Gene') %>% 
-   filter(variance < quantile(variance, .02))%>%# & meancounts > quantile(meancounts, .50)) %>%
-   select(Gene, meancounts, variance) %>%
-   mutate(Exp='SB093') %>% mutate(Organism='CB') %>% arrange(variance) 
- 
- SB093_PD_HK_genes <- PD_norm_counts %>% mutate(variance=rowVars(PD_norm_counts)) %>% 
-   mutate(meancounts=rowMeans(PD_norm_counts)) %>%
-   rownames_to_column('Gene') %>% 
-   filter(variance < quantile(variance, .02)) %>%# & meancounts > quantile(meancounts, .50)) %>%
-   select(Gene, meancounts, variance) %>%
-   mutate(Exp='SB093') %>% mutate(Organism='PD') %>% arrange(variance) 
- 
- bind_rows(SB093_BP_HK_genes, SB093_BS_HK_genes, SB093_CB_HK_genes, SB093_PD_HK_genes) %>%
-   write.table('SB093_HK_genes.txt',quote=F, row.names=F, sep='\t')
+
  
 
 ##### get list of top 100 highly expressed genes in FASTA header format for Supplementary Figure 1 #####
  
- BP_counts_baseline <- BP_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(BP_norm_counts)) %>% select(4) %>% mutate(Organism = 'BP') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) #%>% write.table('SB093_BP_counts_baseline_top100.txt', quote=FALSE, row.names=F, col.names=F)
- BS_counts_baseline <- BS_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(BS_norm_counts)) %>% select(4) %>% mutate(Organism = 'BS') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) #%>% write.table('SB093_BS_counts_baseline_top100.txt', quote=FALSE, row.names=F, col.names=F)
- CB_counts_baseline <- CB_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(CB_norm_counts)) %>% select(4) %>% mutate(Organism = 'CB') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) #%>% write.table('SB093_CB_counts_baseline_top100.txt', quote=FALSE, row.names=F, col.names=F)
- PD_counts_baseline <- PD_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(PD_norm_counts)) %>% select(4) %>% mutate(Organism = 'PD') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) #%>% write.table('SB093_PD_counts_baseline_top100.txt', quote=FALSE, row.names=F, col.names=F)
+ BP_counts_baseline <- BP_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(BP_norm_counts)) %>% select(4) %>% mutate(Organism = 'BP') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) 
+ BS_counts_baseline <- BS_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(BS_norm_counts)) %>% select(4) %>% mutate(Organism = 'BS') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) 
+ CB_counts_baseline <- CB_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(CB_norm_counts)) %>% select(4) %>% mutate(Organism = 'CB') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) 
+ PD_counts_baseline <- PD_norm_counts %>% select(1,2,3) %>% mutate(mean_counts = rowMeans(PD_norm_counts)) %>% select(4) %>% mutate(Organism = 'PD') %>% rownames_to_column('Gene') %>% mutate(Gene=gsub('ID=', '>', Gene)) %>% mutate(Gene=gsub("(;.*)" , "", Gene)) %>% arrange( desc(mean_counts)) %>% head(100) %>% select(Gene) 
  
 
 
